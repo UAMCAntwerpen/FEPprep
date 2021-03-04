@@ -15,33 +15,37 @@ def file_path(string):
         raise argparse.ArgumentTypeError(f"readable_dir:{string} is not a valid path")
 
 def dir_path(string):
-    if os.path.isdir(string):
-        return string
+    
+    dirName = os.path.dirname(string)
+    fileName = os.path.basename(string)
+    
+    if os.path.isdir(dirName):
+        if ".mol" in fileName.lower() or ".sdf" in fileName.lower():
+            
+            return string
+        else:
+            fileName = fileName + ".sdf"
+            string = os.path.join(dirName, fileName)
+            return(string)
     else:
         raise argparse.ArgumentTypeError(f"readable_dir:{string} is not a valid path")
   
-def file_name(string):
-    if ".mol" in string.lower() or ".sdf" in string.lower():
-        return string
-    else:
-        string = string + '.sdf'
-        return string
 
 parser = argparse.ArgumentParser(description="A script to ")
 parser.add_argument("-r","--ref", metavar="", help="Path of the reference file", required=True, type=file_path)
-parser.add_argument("-t","--target", metavar="", help="SMILES input of the target molecule", required=True)
+parser.add_argument("-s","--smiles", metavar="", help="SMILES input of the target molecule", required=True)
 parser.add_argument("-o","--out", metavar="", help="Path of the output file", required=True, type=dir_path)
-parser.add_argument("-n","--name", metavar="", help="Name of the output file", required=True, type=file_name)
 parser.add_argument("-c","--conf", metavar="", help="Amount of conformers to generate. Default is 50", required=False, type=int, default=50)
+parser.add_argument("-t","--time", metavar="", help="Amount of time spent to find the maximum common substructure. Default is 5 seconds", required=False, type=int, default=5)
+
 
 args = parser.parse_args()
 
 refPath = args.ref
-targetSMILES = args.target
-outPath = args.out
-fileName = args.name
-finalOutPath = os.path.join(outPath, fileName)
+targetSMILES = args.smiles
+finalOutPath = args.out
 numConfs = args.conf
+timeoutTime = args.time
 
 ## Function to read in a mol- or SDF-file
 def readMol(filePath):
@@ -66,8 +70,8 @@ targetMol = Chem.AddHs(targetMol, addCoords=True)
 molList = [refMol, targetMol]
 
 ## Searching substructure and converting it to mol object
-print("Searching largest common subsctructure...")
-MCSresult = rdFMCS.FindMCS(molList, ringMatchesRingOnly=True, matchValences=True, completeRingsOnly=True, timeout=30)
+print("Searching maximum common substructure... ")
+MCSresult = rdFMCS.FindMCS(molList, ringMatchesRingOnly=True, matchValences=True, completeRingsOnly=True, timeout=timeoutTime)
 complSMARTS = MCSresult.smartsString
 
 complMol = Chem.MolFromSmarts(complSMARTS)
