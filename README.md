@@ -1,7 +1,7 @@
 # FEPprep
-Python-based alignment tool for FEP preparation
-### Command flags:
+Python-based alignment tool for free energy perturbation (FEP) preparation
 
+### Command flags:
 - -r or --ref: The filepath to the reference sdf or mol file
 - -s or --smiles: The SMILES-string of a molecule you want allign with the reference molecule (this argument should be wrapped like a string like this: "NC(C(=O)N1Cc2c(C1)cccc2)CC(=O)N1CCN(CC1)C(c1ccc(cc1)F)c1ccc(cc1)F")
 - -o or --out: The filepath that indicates where the outputfile should be written to
