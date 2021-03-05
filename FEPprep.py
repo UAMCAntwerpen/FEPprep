@@ -18,15 +18,18 @@ def dir_path(string):
     
     dirName = os.path.dirname(string)
     fileName = os.path.basename(string)
-    
+
     if os.path.isdir(dirName):
-        if ".mol" in fileName.lower() or ".sdf" in fileName.lower():
+        if "." in fileName:
             
             return string
         else:
-            fileName = fileName + ".sdf"
-            string = os.path.join(dirName, fileName)
-            return(string)
+            if fileName.strip() == '':
+                raise argparse.ArgumentTypeError("The output path needs to contain a filename")
+            else:   
+                fileName = fileName + ".sdf"
+                string = os.path.join(dirName, fileName)
+                return(string)
     else:
         raise argparse.ArgumentTypeError(f"readable_dir:{string} is not a valid path")
   
@@ -37,7 +40,6 @@ parser.add_argument("-s","--smiles", metavar="", help="SMILES input of the targe
 parser.add_argument("-o","--out", metavar="", help="Path of the output file", required=True, type=dir_path)
 parser.add_argument("-c","--conf", metavar="", help="Amount of conformers to generate. Default is 50", required=False, type=int, default=50)
 parser.add_argument("-t","--time", metavar="", help="Amount of time spent to find the maximum common substructure. Default is 5 seconds", required=False, type=int, default=5)
-
 
 args = parser.parse_args()
 
@@ -66,6 +68,7 @@ def readMol(filePath):
 ## Reading and prepping in the reference molecule and the targetSMILES
 refMol = readMol(refPath)
 targetMol = Chem.MolFromSmiles(targetSMILES)
+
 targetMol = Chem.AddHs(targetMol, addCoords=True)
 molList = [refMol, targetMol]
 
@@ -125,7 +128,7 @@ for i, mol in enumerate(molList):
         
     ## Calculate volume metric (shape protrude distance) of conf vs refmol and keep track of the smallest value
     prtrd = rdShapeHelpers.ShapeProtrudeDist(mol, refMol)
-    
+
     if len(shapeList) < 1:
         shapeList = [i, prtrd]
     else:
