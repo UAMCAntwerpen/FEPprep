@@ -13,21 +13,20 @@ from rdkit.Chem.Fingerprints import FingerprintMols
 
 
 
-## ArgParse Code and config
 def file_path(string):
     if os.path.isfile(string):
         return string
     else:
-        raise argparse.ArgumentTypeError(f"readable_dir:{string} is not a valid path")
+        raise argparse.ArgumentTypeError(f"readable_dir:{string} could not be found")
+
+
 
 def dir_path(string):
-    
     dirName = os.path.dirname(string)
     fileName = os.path.basename(string)
 
     if os.path.isdir(dirName):
         if "." in fileName:
-            
             return string
         else:
             if fileName.strip() == '':
@@ -38,66 +37,105 @@ def dir_path(string):
                 return(string)
     else:
         raise argparse.ArgumentTypeError(f"readable_dir:{string} is not a valid path")
+
+
+
+## Function to read in the sdf- or smiles-file
+def readMol(filePath):
+    fileName = filePath.split('/')[-1]
+    fileNameExt = fileName.split('.')[-1]
+    fileNameExtLower = fileNameExt.lower()[:3]
+    molInputList = []
+    
+    if (fileNameExtLower == "sdf"):
+        sdfFile = Chem.SDMolSupplier(filePath, removeHs=False)
+		for mol in sdfFile:
+			if mol is None or mol == "": continue
+        	molInputList.append(mol)
+    elif (fileNameExtLower == "smi"):
+        smilesFile = open(filePath, 'r')
+        smilesLines = smilesFile.readlines()
+        for line in smilesLines:
+			line = line.strip()
+			if line is None or line == "": continue
+            SMILES = line.split()[0]
+			mol = Chem.MolFromSmiles(SMILES)
+			if mol is None or mol == "": continue
+			mol = Chem.AddHs(mol)
+            molInputList.append(mol)
+        smilesFile.close()       
+    else:
+        print("File format should be of type smiles or sdf")
+        sys.exit()  
+    return molInputList
+
+
+
+# Function to read the referenc structure
+def readRefMol(filePath):
+    fileName = filePath.split('/')[-1]
+    fileNameExt = fileName.split('.')[-1]
+    fileNameExtLower = fileNameExt.lower()[:3]
+    
+    if (fileNameExtLower == "sdf"):
+        sdfFile = Chem.SDMolSupplier((filePath))
+		if len(sdfFile) > 0: mol = (sdfFile[0])
+		if mol is None or mol == "":
+       		print("Invalid reference structure")
+        	sys.exit()   
+    else:
+        print("File format should be of type sdf")
+        sys.exit()   
+    return mol
   
 
-parser = argparse.ArgumentParser(description="A script to ")
-parser.add_argument("-r","--ref", metavar="", help="Path of the reference file", required=True, type=file_path)
-parser.add_argument("-s","--smiles", "--sdf", "--mol", metavar="", help="Path of the input SMILES, mol or sdf-file", required=True, type=file_path)
-parser.add_argument("-o","--out", metavar="", help="Path of the output file", required=True, type=dir_path)
-parser.add_argument("-c","--conf", metavar="", help="Amount of conformers to generate. Default is 50", required=False, type=int, default=50)
-parser.add_argument("-t","--time", metavar="", help="Amount of time spent to find the maximum common substructure. Default is 5 seconds", required=False, type=int, default=5)
-parser.add_argument("-m","--mcss", "--MCSS", metavar="", help="Amount of atoms that need to overlap before continuing the claculations", required=False, type=int, default=3)
+
+# Argparse code and config
+parser = argparse.ArgumentParser(description="A script to superimpose molecules onto a reference structure using a MCSS search")
+parser.add_argument("-r", "--ref", 
+					metavar="", 
+					help="Reference file (.sdf)", 
+					required=True, 
+					type=file_path)
+parser.add_argument("-i", "--input",
+					metavar="", 
+					help="Input file (.sdf or .smi or .smiles)", 
+					required=True, 
+					type=file_path)
+parser.add_argument("-o", "--out", 
+					metavar="", 
+					help="Output file (.sdf)", 
+					required=True, 
+					type=dir_path)
+parser.add_argument("-c", "--conf", 
+					metavar="", 
+					help="Number of conformers to generate [default: 50]", 
+					required=False, 
+					type=int, 
+					default=50)
+parser.add_argument("-t", "--time", 
+					metavar="", 
+					help="Maximum time (in sec) allowed to find the MCSS [default: 5 sec]", 
+					required=False, 
+					type=int, 
+					default=5)
+parser.add_argument("-m", "--mcss", 
+					metavar="", 
+					help="Minimum number of MCSS atoms required [default: 3]", 
+					required=False, 
+					type=int,
+					default=3)
 
 args = parser.parse_args()
 
 refPath = args.ref
-targetPath = args.smiles
+targetPath = args.input
 finalOutPath = args.out
 numConfs = args.conf
 timeoutTime = args.time
 MCSSThreshold = args.mcss
 
 
-## Function to read in a mol- or SDF-file
-def readMol(filePath):
-    fileName = filePath.split('/')[-1]
-    fileNameExt = fileName.split('.')[-1]
-    fileNameExtLower = fileNameExt.lower()
-    molInputList = []
-    
-    if(fileNameExtLower == "mol"):
-        mol = Chem.MolFromMolFile(filePath, removeHs=False)
-        molInputList.append(mol)
-    elif(fileNameExtLower == "sdf"):
-        sdfFile = Chem.SDMolSupplier(filePath, removeHs=False)
-        mol = sdfFile
-    elif(fileNameExtLower == "smi" or fileNameExtLower == "smiles"):
-        smilesFile = open(filePath, 'r')
-        smilesLines = smilesFile.readlines()
-        
-        for line in smilesLines:
-            SMILES = line.split()[0]
-            molInputList.append(Chem.MolFromSmiles(SMILES))
-        smilesFile.close()       
-    else:
-        print("did not recognize file format")
-        sys.exit()  
-    return molInputList
-
-def readRefMol(filePath):
-    fileName = filePath.split('/')[-1]
-    fileNameExt = fileName.split('.')[-1]
-    fileNameExtLower = fileNameExt.lower()
-    
-    if(fileNameExtLower == "mol"):
-        mol = (Chem.MolFromMolFile(filePath))
-    elif(fileNameExtLower == "sdf"):
-        sdfFile = Chem.SDMolSupplier((filePath))
-        mol = (sdfFile[0])
-    else:
-        print("did not recognize file format")
-        sys.exit()   
-    return mol
 
 ## Reading and prepping in the reference molecule and the targetSMILES
 refMol = readRefMol(refPath)
@@ -124,10 +162,10 @@ for targetMol in molInputList:
     
     print("Found a maximum common substructure (MCSS) with " + str(complMol.GetNumAtoms()) + " atoms and " + str(complMol.GetNumBonds()) + " bonds!")
     if MCSSThreshold >= complMol.GetNumAtoms() :
-        print("skipping this molecule, MCSS too little!")
+        print("skipping this molecule, MCSS below the cutoff of %d atoms!" % (MCSSThreshold))
         print("---------------------------------------------------------------------------------\n")
-
         continue
+		
     ## Generate Conformation for target (SMILES)
     AllChem.EmbedMolecule(targetMol)
     
@@ -137,19 +175,16 @@ for targetMol in molInputList:
     
     ## Make a list of complMol atomIdxs to be able to loop over
     complIdxs = []
-    
     for atom in complMol.GetAtoms():
         complIdxs.append(atom.GetIdx())
     
     ## Loop through the atomIdxs matching the substructure of targetMol and complMol, 
     ## to set their positions equal to the exact position of the corresponding atom of the refMol
-    print("Generating " + str(numConfs) + " conformations...")
-    
+    print("Generating " + str(numConfs) + " conformations.")
     for refIdx, targetIdx, complIdx in zip(refMatch, targetMatch, complIdxs):   
           refCoords = refMol.GetConformer().GetAtomPosition(refIdx)
           targetMol.GetConformer().SetAtomPosition(targetIdx, refCoords)
           complConf.SetAtomPosition(complIdx, refCoords)
-          
     complMol.AddConformer(complConf) 
     
     ## Constrained embed numConf amount of times, with restraint core being the MCSS
@@ -157,7 +192,6 @@ for targetMol in molInputList:
     
     for i in range(numConfs):
         seed = random.randint(0, 9999999)
-        
         tempMol = copy.copy(targetMol)
         try:
             molConf = AllChem.ConstrainedEmbed(tempMol, complMol, useTethers=False, randomseed=seed) 
