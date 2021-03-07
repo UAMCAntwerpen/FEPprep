@@ -49,24 +49,24 @@ def readMol(filePath):
     
     if (fileNameExtLower == "sdf"):
         sdfFile = Chem.SDMolSupplier(filePath, removeHs=False)
-		for mol in sdfFile:
-			if mol is None or mol == "": continue
-        	molInputList.append(mol)
+        for mol in sdfFile:
+            if mol is None or mol == "": continue
+            molInputList.append(mol)
     elif (fileNameExtLower == "smi"):
         smilesFile = open(filePath, 'r')
         smilesLines = smilesFile.readlines()
         for line in smilesLines:
-			line = line.strip()
-			if line is None or line == "": continue
+            line = line.strip()
+            if line is None or line == "": continue
             SMILES = line.split()[0]
-			mol = Chem.MolFromSmiles(SMILES)
-			if mol is None or mol == "": continue
-			mol = Chem.AddHs(mol)
+            mol = Chem.MolFromSmiles(SMILES)
+            if mol is None or mol == "": continue
+            mol = Chem.AddHs(mol)
             molInputList.append(mol)
         smilesFile.close()       
     else:
         print("File format should be of type smiles or sdf")
-        sys.exit()  
+        sys.exit(1)  
     return molInputList
 
 
@@ -79,13 +79,13 @@ def readRefMol(filePath):
     
     if (fileNameExtLower == "sdf"):
         sdfFile = Chem.SDMolSupplier((filePath))
-		if len(sdfFile) > 0: mol = (sdfFile[0])
-		if mol is None or mol == "":
-       		print("Invalid reference structure")
-        	sys.exit()   
+        if len(sdfFile) > 0: mol = (sdfFile[0])
+        if mol is None or mol == "":
+            print("Invalid reference structure")
+            sys.exit(1)   
     else:
         print("File format should be of type sdf")
-        sys.exit()   
+        sys.exit(1)   
     return mol
   
 
@@ -256,3 +256,4 @@ for targetMol in molInputList:
 
 SDwriter.close()
 print("Written file to " + finalOutPath)
+sys.exit(0)
