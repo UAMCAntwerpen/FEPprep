@@ -52,14 +52,14 @@ def readMol(filePath):
 
 
 
-# Function to read the referenc structure
+# Function to read the reference structure
 def readRefMol(filePath):
     fileName = filePath.split('/')[-1]
     fileNameExt = fileName.split('.')[-1]
     fileNameExtLower = fileNameExt.lower()[:3]
     
     if (fileNameExtLower == "sdf"):
-        sdfFile = Chem.SDMolSupplier((filePath))
+        sdfFile = Chem.SDMolSupplier((filePath, removeHs=False))
         if len(sdfFile) > 0: mol = (sdfFile[0])
         if mol is None or mol == "":
             print("Invalid reference structure")
