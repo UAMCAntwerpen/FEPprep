@@ -59,7 +59,7 @@ def readRefMol(filePath):
     fileNameExtLower = fileNameExt.lower()[:3]
     
     if (fileNameExtLower == "sdf"):
-        sdfFile = Chem.SDMolSupplier((filePath, removeHs=False))
+        sdfFile = Chem.SDMolSupplier(filePath, removeHs=False)
         if len(sdfFile) > 0: mol = (sdfFile[0])
         if mol is None or mol == "":
             print("Invalid reference structure")
