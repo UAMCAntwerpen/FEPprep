@@ -21,25 +21,6 @@ def file_path(string):
 
 
 
-def dir_path(string):
-    dirName = os.path.dirname(string)
-    fileName = os.path.basename(string)
-
-    if os.path.isdir(dirName):
-        if "." in fileName:
-            return string
-        else:
-            if fileName.strip() == '':
-                raise argparse.ArgumentTypeError("The output path needs to contain a filename")
-            else:   
-                fileName = fileName + ".sdf"
-                string = os.path.join(dirName, fileName)
-                return(string)
-    else:
-        raise argparse.ArgumentTypeError(f"readable_dir:{string} is not a valid path")
-
-
-
 ## Function to read in the sdf- or smiles-file
 def readMol(filePath):
     fileName = filePath.split('/')[-1]
@@ -106,7 +87,7 @@ parser.add_argument("-o", "--out",
 					metavar="", 
 					help="Output file (.sdf)", 
 					required=True, 
-					type=dir_path)
+					type=str)
 parser.add_argument("-c", "--conf", 
 					metavar="", 
 					help="Number of conformers to generate [default: 50]", 
@@ -156,7 +137,7 @@ for targetMol in molInputList:
     molList = [refMol, targetMol]
     
     ## Searching substructure and converting it to mol object
-    print("Processing molecule with SMILES: " + targetName)
+    print("Processing molecule: " + targetName)
     print("Searching maximum common substructure... ")
     MCSresult = rdFMCS.FindMCS(molList, ringMatchesRingOnly=True, matchValences=True, completeRingsOnly=True, timeout=timeoutTime)
     complSMARTS = MCSresult.smartsString
