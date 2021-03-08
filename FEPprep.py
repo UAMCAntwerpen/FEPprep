@@ -234,7 +234,6 @@ for targetMol in molInputList:
     print("The reference molecule has a formal charge of " + str(formalChargeRef) + ", and contains " + str(refMol.GetNumAtoms()) +" atoms and " +  str(refMol.GetNumBonds()) + " bonds.")
     print("The Tanimoto Similarity between the final structure and the reference compound is " + str(taniSim))
     print("The maximum common substructure (MCSS) contained " + str(complMol.GetNumAtoms()) + " atoms and " + str(complMol.GetNumBonds()) + " bonds")
-    print("---------------------------------------------------------------------------------\n")
     
     finalMol.SetProp("_Name", targetName)
     finalMol.SetProp("Tanimoto", str(taniSim))
