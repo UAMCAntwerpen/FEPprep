@@ -36,6 +36,7 @@ def readMol(filePath):
     elif (fileNameExtLower == "smi"):
         smilesFile = open(filePath, 'r')
         smilesLines = smilesFile.readlines()
+        
         for line in smilesLines:
             line = line.strip()
             if line is None or line == "": continue
@@ -117,7 +118,6 @@ timeoutTime = args.time
 MCSSThreshold = args.mcss
 
 
-
 ## Reading and prepping in the reference molecule and the targetSMILES
 refMol = readRefMol(refPath)
 molInputList = readMol(targetPath)
@@ -127,11 +127,14 @@ SDwriter = Chem.SDWriter(finalOutPath)
 for targetMol in molInputList:
     
     embedError = False
-
-    if targetMol.GetProp("_Name") is None or targetMol.GetProp("_Name") == "": 
-        targetName = Chem.MolToSmiles(targetMol)
+    if not '.smi' in targetPath.lower():
+        if targetMol.GetProp("_Name") is None or targetMol.GetProp("_Name") == "": 
+            targetName = Chem.MolToSmiles(targetMol)
+        else:
+            targetName = targetMol.GetProp("_Name")
     else:
-        targetName = targetMol.GetProp("_Name")
+        targetName = Chem.MolToSmiles(targetMol)
+
 
     targetMol = Chem.AddHs(targetMol, addCoords=True)
     molList = [refMol, targetMol]
