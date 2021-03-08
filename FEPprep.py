@@ -139,7 +139,7 @@ for targetMol in molInputList:
     ## Searching substructure and converting it to mol object
     print("Processing molecule: " + targetName)
     print("Searching maximum common substructure... ")
-    MCSresult = rdFMCS.FindMCS(molList, ringMatchesRingOnly=True, matchValences=True, completeRingsOnly=True, timeout=timeoutTime)
+    MCSresult = rdFMCS.FindMCS(molList, ringMatchesRingOnly=True, matchValences=True, completeRingsOnly=False, timeout=timeoutTime)
     complSMARTS = MCSresult.smartsString
     complMol = Chem.MolFromSmarts(complSMARTS)
     complConf = Chem.Conformer(complMol.GetNumAtoms())
