@@ -128,11 +128,10 @@ for targetMol in molInputList:
     
     embedError = False
 
-    if targetMol.HasProperty("_Name"):
-        if targetMol.GetProp("_Name") is None or targetMol.GetProp("_Name") == "": 
-            targetName = Chem.MolToSmiles(targetMol)
-        else:
-            targetName = targetMol.GetProp("_Name")
+    if targetMol.GetProp("_Name") is None or targetMol.GetProp("_Name") == "": 
+        targetName = Chem.MolToSmiles(targetMol)
+    else:
+        targetName = targetMol.GetProp("_Name")
 
     targetMol = Chem.AddHs(targetMol, addCoords=True)
     molList = [refMol, targetMol]
