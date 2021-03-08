@@ -135,18 +135,26 @@ for targetMol in molInputList:
     else:
         targetName = Chem.MolToSmiles(targetMol)
 
-
     targetMol = Chem.AddHs(targetMol, addCoords=True)
-    molList = [refMol, targetMol]
     
     ## Searching substructure and converting it to mol object
     print("Processing molecule: " + targetName)
     print("Searching maximum common substructure... ")
-    MCSresult = rdFMCS.FindMCS(molList, ringMatchesRingOnly=True, matchValences=True, completeRingsOnly=False, timeout=timeoutTime)
+    MCSresult = rdFMCS.FindMCS([refMol, targetMol], 
+                               ringMatchesRingOnly=True, 
+                               matchValences=True, 
+                               completeRingsOnly=False, 
+                               timeout=timeoutTime, 
+                               bondCompare=rdFMCS.BondCompare.CompareOrder, 
+                               atomCompare=rdFMCS.AtomCompare.CompareElements,
+                               maximizeBonds=False)
     complSMARTS = MCSresult.smartsString
     complMol = Chem.MolFromSmarts(complSMARTS)
+
     complConf = Chem.Conformer(complMol.GetNumAtoms())
     
+    print(complSMARTS)
+
     print("Found a maximum common substructure (MCSS) with " + str(complMol.GetNumAtoms()) + " atoms and " + str(complMol.GetNumBonds()) + " bonds!")
     if MCSSThreshold >= complMol.GetNumAtoms() :
         print("skipping this molecule, MCSS below the cutoff of %d atoms!" % (MCSSThreshold))
@@ -170,7 +178,6 @@ for targetMol in molInputList:
     print("Generating " + str(numConfs) + " conformations.")
     for refIdx, targetIdx, complIdx in zip(refMatch, targetMatch, complIdxs):   
           refCoords = refMol.GetConformer().GetAtomPosition(refIdx)
-          targetMol.GetConformer().SetAtomPosition(targetIdx, refCoords)
           complConf.SetAtomPosition(complIdx, refCoords)
     complMol.AddConformer(complConf) 
     
