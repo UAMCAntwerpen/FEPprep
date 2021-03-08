@@ -131,9 +131,9 @@ for targetMol in molInputList:
     if targetMol.HasProperty("_Name"):
         if targetMol.GetProp("_Name") is None or targetMol.GetProp("_Name") == "": 
             targetName = Chem.MolToSmiles(targetMol)
-   	    else:
+        else:
             targetName = targetMol.GetProp("_Name")
-    
+
     targetMol = Chem.AddHs(targetMol, addCoords=True)
     molList = [refMol, targetMol]
     
