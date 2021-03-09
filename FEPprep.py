@@ -178,6 +178,7 @@ for targetMol in molInputList:
     print("Generating " + str(numConfs) + " conformations.")
     for refIdx, targetIdx, complIdx in zip(refMatch, targetMatch, complIdxs):   
           refCoords = refMol.GetConformer().GetAtomPosition(refIdx)
+          targetMol.GetConformer().SetAtomPosition(targetIdx, refCoords)
           complConf.SetAtomPosition(complIdx, refCoords)
     complMol.AddConformer(complConf) 
     
@@ -190,15 +191,14 @@ for targetMol in molInputList:
         try:
             molConf = AllChem.ConstrainedEmbed(tempMol, complMol, useTethers=False, randomseed=seed) 
         except:
-            print("Error occured while embedding " + targetName + ", moving on to the next molecule.")
-            print("---------------------------------------------------------------------------------\n")
+            print("Error occured while embedding " + targetName)
+            print("-------------------------------------------------------------")
             embedError= True
-            break  
+            continue
+        molList.append(molConf)
         
     if embedError == True:
         continue
-    
-    molList.append(molConf)
     
     
     shapeList = []
