@@ -17,7 +17,7 @@ def file_path(string):
     if os.path.isfile(string):
         return string
     else:
-        raise argparse.ArgumentTypeError(f"readable_dir:{string} could not be found")
+		print("Error: filename %s could not be found: exiting." % (string))
 
 
 
@@ -169,7 +169,7 @@ for targetMol in molInputList:
     ## Searching substructure and converting it to mol object
     print("Processing molecule: " + targetName)
     print("Searching maximum common substructure... ")
-    MCSresult = rdFMCS.FindMCS([Chem.RemoveAllHs(refMol), targetMol], 
+    MCSresult = rdFMCS.FindMCS([Chem.RemoveHs(refMol), targetMol], 
                                ringMatchesRingOnly=False,  
                                matchValences=True, 
                                completeRingsOnly=False, 
