@@ -9,7 +9,7 @@ import numpy as np
 
 from rdkit import Chem
 from rdkit import DataStructs
-from rdkit.Chem import rdFMCS, AllChem, rdShapeHelpers, rdmolops, TorsionFingerprints, rdForceFieldHelpers
+from rdkit.Chem import rdFMCS, AllChem, rdShapeHelpers, rdmolops, rdForceFieldHelpers
 from rdkit.Chem.Fingerprints import FingerprintMols
 
 
@@ -73,35 +73,6 @@ def readRefMol(filePath):
         print("File format should be of type sdf")
         sys.exit(1)   
     return mol
-
-
-
-# Function to get all torsions in a molecule
-def enumerateTorsions(mol):
-    torsionSmarts = '[!$(*#*)&!D1]~[!$(*#*)&!D1]'
-    torsionQuery = Chem.MolFromSmarts(torsionSmarts)
-    matches = mol.GetSubstructMatches(torsionQuery)
-    torsionList = []
-    for match in matches:
-        idx2 = match[0]
-        idx3 = match[1]
-        bond = mol.GetBondBetweenAtoms(idx2, idx3)
-        jAtom = mol.GetAtomWithIdx(idx2)
-        kAtom = mol.GetAtomWithIdx(idx3)
-        if (((jAtom.GetHybridization() != Chem.HybridizationType.SP2)
-            and (jAtom.GetHybridization() != Chem.HybridizationType.SP3))
-            or ((kAtom.GetHybridization() != Chem.HybridizationType.SP2)
-            and (kAtom.GetHybridization() != Chem.HybridizationType.SP3))): continue
-        for b1 in jAtom.GetBonds():
-            if (b1.GetIdx() == bond.GetIdx()): continue
-            idx1 = b1.GetOtherAtomIdx(idx2)
-            for b2 in kAtom.GetBonds():
-                if ((b2.GetIdx() == bond.GetIdx()) or (b2.GetIdx() == b1.GetIdx())): continue
-                idx4 = b2.GetOtherAtomIdx(idx3)
-                # skip 3-membered rings
-                if (idx4 == idx1): continue
-                torsionList.append((idx1, idx2, idx3, idx4))
-    return torsionList
  
 
 
@@ -122,12 +93,6 @@ parser.add_argument("-o", "--out",
 					help="Output file (.sdf)", 
 					required=True, 
 					type=str)
-#parser.add_argument("-c", "--conf", 
-#					metavar="", 
-#					help="Number of conformers to generate [default: 50]", 
-#					required=False, 
-#					type=int, 
-#					default=50)
 parser.add_argument("-t", "--time", 
 					metavar="", 
 					help="Maximum time (in sec) allowed to find the MCSS [default: 3 sec]", 
@@ -146,7 +111,6 @@ args = parser.parse_args()
 refPath = args.ref
 targetPath = args.input
 finalOutPath = args.out
-#numConfs = args.conf
 timeoutTime = args.time
 MCSSThreshold = args.mcss
 
@@ -221,8 +185,7 @@ for i in range(len(refMatchIdx)): atomMap.append([targetMatchIdx[i], refMatchIdx
 ffProps = AllChem.MMFFGetMoleculeProperties(targetMol, mmffVariant='MMFF94')
 ff = AllChem.MMFFGetMoleculeForceField(targetMol, ffProps)
 for i in targetMatchIdx: ff.AddFixedPoint(i)
-success = ff.Minimize(1000)	  
-if not success:
+if ff.Minimize(1000) != 0:	  
 	print("Error in minimizing: exit")
 	sys.exit(1)
 
