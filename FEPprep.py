@@ -29,7 +29,12 @@ def readMol(filePath):
     molInputList = []
     
     if (fileNameExtLower == "sdf"):
-        sdfFile = Chem.SDMolSupplier(filePath, removeHs=False)
+        mol = Chem.MolFromMolFile(filePath, removeHs=False)
+        try:
+            sdfFile = Chem.SDMolSupplier(filePath, removeHs=False)
+        except:
+            print("Error reading molecule")
+            sys.exit(1)
         for mol in sdfFile:
             if mol is None or mol == "": continue
             molInputList.append(mol)
@@ -48,7 +53,10 @@ def readMol(filePath):
         smilesFile.close()       
     else:
         print("File format should be of type smiles or sdf")
-        sys.exit(1)  
+        sys.exit(1) 
+    if len(molInputList) == 0:
+        print("Error reading file: exiting")
+        sys.exit(1) 
     return molInputList
 
 
@@ -126,10 +134,10 @@ parser.add_argument("-c", "--conf",
 					default=50)
 parser.add_argument("-t", "--time", 
 					metavar="", 
-					help="Maximum time (in sec) allowed to find the MCSS [default: 5 sec]", 
+					help="Maximum time (in sec) allowed to find the MCSS [default: 3 sec]", 
 					required=False, 
 					type=int, 
-					default=5)
+					default=3)
 parser.add_argument("-m", "--mcss", 
 					metavar="", 
 					help="Minimum number of MCSS atoms required [default: 3]", 
@@ -178,6 +186,7 @@ for targetMol in molInputList:
                                atomCompare=rdFMCS.AtomCompare.CompareElements,
                                maximizeBonds=False)
     complSMARTS = MCSresult.smartsString
+    print(complSMARTS)
     complMol = Chem.MolFromSmarts(complSMARTS)
     complConf = Chem.Conformer(complMol.GetNumAtoms())
 
@@ -229,9 +238,15 @@ for targetMol in molInputList:
                                        targetTorsion[1],
                                        targetTorsion[2],
                                        targetTorsion[3], angle)
-
+    
     # Align the target onto the reference
-    AllChem.AlignMol(targetMol, refMol, atomMap = atomMap)    
+    #AllChem.AlignMol(targetMol, refMol, atomMap = atomMap) 
+    #w = Chem.SDWriter("reference.sdf")
+    #w.write(refMol)
+    #w.close()
+    #w = Chem.SDWriter("target.sdf")
+    #w.write(targetMol)
+    #w.close()   
 
     # Make a list of complMol atomIdxs to be able to loop over
     complIdxs = []
