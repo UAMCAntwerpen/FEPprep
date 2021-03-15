@@ -190,6 +190,10 @@ if ff.Minimize(1000) != 0:
 	sys.exit(1)
 
 
+# Stereochemistry perceptions
+Chem.rdmolops.AssignStereochemistryFrom3D(targetMol, replaceExistingTags=True)
+
+
 # Write out
 SDwriter.write(targetMol)
 SDwriter.close()
