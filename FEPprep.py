@@ -147,7 +147,7 @@ MCSresult = rdFMCS.FindMCS([Chem.RemoveHs(refMol), targetMol],
                            timeout=timeoutTime, 
                            bondCompare=rdFMCS.BondCompare.CompareOrder, 
                            atomCompare=rdFMCS.AtomCompare.CompareElements,
-						   matchChiralTag=True,
+						   #matchChiralTag=True,
                            maximizeBonds=False)
 MCSsmarts = MCSresult.smartsString
 print(MCSsmarts)
